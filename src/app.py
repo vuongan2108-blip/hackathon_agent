@@ -31,6 +31,55 @@ def cmd_review(args: list[str]) -> int:
         return 1
 
 
+def _run_draft(filepath: str, save_to: str | None = None) -> int:
+    """Shared logic for draft-confirmation and generate-ticket-content."""
+    try:
+        from src.draft_confirmation.generator import generate_draft
+        import pathlib
+        result = generate_draft(filepath)
+        output = result.render()
+        print(output)
+        if save_to:
+            out_path = pathlib.Path(save_to)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(output, encoding="utf-8")
+            print(f"\n[Saved → {save_to}]", file=sys.stderr)
+        return 0
+    except FileNotFoundError as e:
+        print(f"[ERROR] {e}", file=sys.stderr)
+        return 1
+    except ValueError as e:
+        print(f"[ERROR] Cannot parse request: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"[ERROR] {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_draft_confirmation(args: list[str]) -> int:
+    if not args:
+        print(
+            "Usage: python -m src.app draft-confirmation <request_file>",
+            file=sys.stderr,
+        )
+        return 1
+    return _run_draft(args[0])
+
+
+def cmd_generate_ticket_content(args: list[str]) -> int:
+    """generate-ticket-content: same as draft-confirmation, also saves combined output file."""
+    if not args:
+        print(
+            "Usage: python -m src.app generate-ticket-content <request_file>",
+            file=sys.stderr,
+        )
+        return 1
+    return _run_draft(
+        args[0],
+        save_to="demo_outputs/generate_ticket_content_output_sample.txt",
+    )
+
+
 def cmd_ask(args: list[str]) -> int:
     if not args:
         print("Usage: python -m src.app ask \"<question>\"", file=sys.stderr)
@@ -53,7 +102,10 @@ def cmd_ask(args: list[str]) -> int:
 def main() -> int:
     argv = sys.argv[1:]
     if not argv:
-        print("Commands: review <file>  |  ask \"<question>\"")
+        print(
+            "Commands: review <file>  |  ask \"<question>\"  |  "
+            "draft-confirmation <file>  |  generate-ticket-content <file>"
+        )
         return 0
 
     command = argv[0].lower()
@@ -63,8 +115,16 @@ def main() -> int:
         return cmd_review(rest)
     elif command == "ask":
         return cmd_ask(rest)
+    elif command == "draft-confirmation":
+        return cmd_draft_confirmation(rest)
+    elif command == "generate-ticket-content":
+        return cmd_generate_ticket_content(rest)
     else:
-        print(f"Unknown command: {command}. Use 'review' or 'ask'.", file=sys.stderr)
+        print(
+            f"Unknown command: {command}. "
+            "Use 'review', 'ask', 'draft-confirmation', or 'generate-ticket-content'.",
+            file=sys.stderr,
+        )
         return 1
 
 
