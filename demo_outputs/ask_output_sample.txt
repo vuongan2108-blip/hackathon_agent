@@ -1,0 +1,34 @@
+**[SCHEME] Lucky Wheel**
+
+**Step 0 — Create:** Truy cập events-tool → campaign management → "Create New Campaign" → chọn "Lucky Wheel V2".
+
+**Step 1 — General Info**
+- Campaign Name — Tên chương trình
+- Marketing Code — Marketing Code
+- Test Date — Ngày Start Test. Trong thời gian test, chỉ user trong whitelist mới có thể tham gia. Add/Remove qua global-whitelist
+- Start Date — Ngày kết thúc Test & Bắt đầu live camp
+- End Date — Ngày kết thúc campaign
+- TnC Link — Link advertising ads
+
+**Step 2 — Mechanism**
+- Join Condition — Các điều kiện để tham gia (RISK / SEGMENT / RULE). Tạo như mục User Condition. Nếu không dùng điều kiện gì → không chỉnh sửa & Save
+- SegmentID — Segment để lưu log User Join Campaign. Tạo Segment Dimension whitelist ở CRM tool
+- Turn — Bật Universal Turn: dùng chung lượt chơi với chương trình khác → chọn thông tin lượt chơi trong drop list. Tắt: dùng lượt chơi riêng → để mặc định, hệ thống tự tạo thông tin lượt chơi
+
+**Step 5 — UI Config** (xác định game play; 5 dạng UI)
+- *Landing Page UI:* Banner — Banner chương trình; Background — Background chương trình; TnC icon — Icon Thể lệ; History icon — Icon Lịch sử; Primary Text Color — Màu tên nhiệm vụ; Secondary Text Color — Màu của "+x lượt"; Footer Text Color — Màu chữ Thể lệ
+- *Lucky Wheel UI:* Edge Background Image — Hình vòng quay; Stand Background Image — Đế vòng quay (có thể để trống); Arrow Background Image — Hình kim quay; Arrow Text Color — Màu text trong khung kim quay; Wheel Piece Color 1 — Màu của từng mảnh vòng quay
+- *Lucky Grid UI:* Spin Button — Hình nút nhấn; Cell Background — Khung màu nâu khi chưa sáng đèn; Active Cell Background — Khung màu vàng khi sáng đèn; Lucky Grid Background — Background chứa các grid; Turn Text Color — Màu chữ "Có x lượt"; Turn Number Color — Màu số lượt
+- *Slot Machine UI:* Edge background image — Hình cái máy; Spin button — Hình nút "Chơi ngay"; Turn background — Màu khung lượt chơi; Turn border color — Viền khung lượt chơi; Turn Text Color — Màu chữ khung lượt chơi; Turn Number Color — Màu số lượt
+- *Mystery Box UI:* Layout Type — Số lượng hộp quà (hàng x cột): 1x1, 2x2, 2x3, 3x3; Required Press Count — Số lần nhấn để mở quà; Reduction Percentage — Tốc độ giảm
+- *Piece UI:* Piece Icon — Hình hiển thị trên game (Lucky wheel → mảnh quà; Lucky Grid → icon grid; Slot Machine → icon slot; Mystery Box → hình hộp quà); Reward Mapping — Chọn quà tặng tương ứng với icon
+- *Popup UI:* Popup Background Color — Màu bg popup chúc mừng; Popup Stroke Color — Màu viền popup; Header Ribbon Background — Hình header popup; Header Ribbon Text Color — Màu text header popup; Reward Name Text Color — Màu Reward Name; Reward Description Text Color — Màu Description; Continue Button Text Color — Màu text CTA tiếp tục; Continue Button BG Color — Màu bg CTA tiếp tục; View Reward Button Text Color — Màu text CTA xem quà
+- *Bottom Sheet UI (Task List):* Bottom sheet header background — Hình header Task List; Bottom Sheet Header Text Color — Màu text header; Bottom sheet background color — Màu bg khung nhiệm vụ; Card background color — Màu bg thẻ nhiệm vụ; Stroke color — Màu viền khung & thẻ nhiệm vụ; CTA background color — Màu bg CTA nhiệm vụ; CTA Text color — Màu text CTA nhiệm vụ
+- *Entry Point UI:* Entry Point Background Color — Màu BG khung entry point; Entry Point Stroke Color — Màu stroke đổ shadow; Entry-Point Image Url — Hình hiển thị (min 2, max 5); CTA ZPI Link — Link ZPI; CTA ZPA Link — Link ZPA
+
+**Step 7 — Review & Create:** Lấy link vào chương trình. Nhấn Sync sau mỗi lần create/update.
+
+
+---
+
+**Nguồn:** https://events-tool.zalopay.vn/ — A1. [SCHEME] Lucky Wheel

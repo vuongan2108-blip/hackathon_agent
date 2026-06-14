@@ -1,0 +1,24 @@
+=== REVIEW: [DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ ===
+Tổng point: 10 | Đã hỗ trợ: 8 | Cần confirm: 2
+
+--- ĐÃ HỖ TRỢ ---
+[SCHEME] Game Type = lucky wheel ✅ (có trong allowlist)
+[TASK] Task "Nạp điện thoại" = Nạp điện thoại: Nạp điện thoại để nhận lượt quay → trigger = payment ✅ (keyword "nạp")
+[TASK] Task "Điểm danh hàng ngày" = Điểm danh hàng ngày: Điểm danh mỗi ngày để nhận thêm lượt quay → trigger = checkin ✅ (keyword "điểm danh")
+[TASK] Task "Ghé thăm Fanpage Zalopay" = Ghé thăm Fanpage Zalopay: Ghé thăm Fanpage Zalopay để nhận lượt quay → trigger = openlink ✅ (keyword "ghé thăm")
+[TASK] Task "Mời bạn bè tham gia" = Mời bạn bè tham gia: Mời bạn bè cùng tham gia chương trình → trigger = referral ✅ (keyword "mời")
+[TASK] Task "Đặt vé máy bay hè" = Đặt vé máy bay hè: Đặt vé máy bay hè để nhận lượt quay đặc biệt → trigger = payment ✅ (keyword "đặt")
+[REWARD] Reward = voucher — Voucher OTA giảm giá vé máy bay → voucher ✅
+[REWARD] Reward = xu — 10 xu hoặc 100 xu mỗi lượt → xu ✅
+
+--- CẦN PO CONFIRM ---
+1. [TASK] Task "Chụp màn hình chia sẻ campaign"
+   Nội dung: tên task "Chụp màn hình chia sẻ campaign", description "Chụp màn hình và chia sẻ lên mạng xã hội để nhận thêm lượt"
+   Lý do: Không xác định được trigger — không khớp keyword nào
+   Hỏi PO: Trigger cho task "Chụp màn hình chia sẻ campaign" này đã available trên tool chưa?
+
+2. [REWARD] Reward "vé"
+   Nội dung: loại quà = "vé" (Vé cứng CGV xem phim miễn phí)
+   Lý do: Không có trong KB allowlist
+   Hỏi PO: Loại quà "vé" đã available trên tool chưa? Map vào loại nào trong: voucher / xu / cashback / merchant code?
+
