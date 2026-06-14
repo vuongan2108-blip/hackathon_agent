@@ -1,0 +1,52 @@
+=== DRAFT CONFIRMATION TICKETS: [DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ ===
+Generated: 14/06/2026 | T (go-live): 10/07/2026
+Milestones: T−2 = 08/07/2026 (gửi link test) | T−1 = 09/07/2026 (update theo feedback) | T = 10/07/2026 (go live)
+
+--- TICKET: BIZ ---
+Dear Biz,
+Để support cho campaign [[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ],
+nhờ bạn support giúp:
+
+• Context:      Campaign '[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ' (Game Type: lucky wheel) đang trong giai đoạn chuẩn bị. Một số field trong request còn thiếu hoặc thiếu mô tả.
+• Request:      Nhờ bạn input lại đầy đủ các field còn thiếu/thiếu mô tả: "mô tả chương trình".
+• Related doc:  File request đính kèm; template: template_request_campaign_v1
+• Timeline:     SLA 1 working day — due 15/06/2026
+
+--- TICKET: DESIGN ---
+Dear Design,
+Để support cho campaign [[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ],
+nhờ bạn support giúp:
+
+• Context:      Campaign '[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ' dùng Game Type: lucky wheel. Request đã có phần Game UI cần thiết kế.
+• Request:      Nhờ bạn thiết kế UI theo Game UI brief: UI Design Type: Lucky Wheel; Design brief: Tone màu cam/vàng mùa hè; vòng quay chính + background bãi biển; Yêu cầu thêm: Responsive mobile; tích hợp animation quay.
+• Related doc:  File request đính kèm; KB: Nguồn: https://events-tool.zalopay.vn/ — A1. [SCHEME] Lucky Wheel
+• Timeline:     SLA 7 ngày (calendar) — due 21/06/2026
+
+--- TICKET: PO ---
+Dear PO,
+Để support cho campaign [[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ],
+nhờ bạn support giúp:
+
+• Context:      Kết quả review UC1 cho campaign '[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ' có một số hạng mục chưa available hoặc chưa rõ trigger.
+• Request:      Nhờ bạn confirm các điểm chưa available/chưa rõ: [TASK] Task "Chụp màn hình chia sẻ campaign": Không xác định được trigger — không khớp keyword nào; [REWARD] Reward "vé": Không có trong KB allowlist.
+• Related doc:  Output UC1 (review) đính kèm; file request đính kèm
+• Timeline:     SLA 1 working day — due 15/06/2026
+
+--- TICKET: OPS ---
+Dear Ops,
+Để support cho campaign [[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ],
+nhờ bạn support giúp:
+
+• Context:      Campaign '[DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ' (Game Type: lucky wheel, go-live T = 10/07/2026). Bộ ticket điều phối đã được soạn đầy đủ.
+• Request:      Setup campaign theo request đính kèm. Ba phần tiến hành như sau:
+  1. [Phần clear — start ngay D0=14/06/2026]
+     Hạng mục: [SCHEME] Game Type; [TASK] Task "Nạp điện thoại"; [TASK] Task "Điểm danh hàng ngày"; [TASK] Task "Ghé thăm Fanpage Zalopay"; [TASK] Task "Mời bạn bè tham gia"; [TASK] Task "Đặt vé máy bay hè"; [REWARD] Reward; [REWARD] Reward
+     Tham khảo: Nguồn: https://events-tool.zalopay.vn/ — A1. [SCHEME] Lucky Wheel
+  2. [Phần chưa-clear — chờ PO ticket xong, due 15/06/2026]
+     Hạng mục: [TASK] Task "Chụp màn hình chia sẻ campaign"; [REWARD] Reward "vé"
+  3. [Phần config UI — chờ Design ticket xong, due 21/06/2026]
+     Game UI: UI Design Type: Lucky Wheel; Design brief: Tone màu cam/vàng mùa hè; vòng quay chính + background bãi biển; Yêu cầu thêm: Responsive mobile; tích hợp animation quay
+• Related doc:  File request đính kèm (Confluence/local); KB setup guide: Nguồn: https://events-tool.zalopay.vn/ — A1. [SCHEME] Lucky Wheel
+• Timeline:     SLA 2 tuần (calendar) — due 28/06/2026
+• Dependency:   Phần 2 depend PO ticket (due 15/06/2026); Phần 3 depend Design ticket (due 21/06/2026)
+

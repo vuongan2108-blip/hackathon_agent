@@ -99,11 +99,34 @@ def parse_request(filepath: str | Path) -> dict:
     if not tasks and not rewards:
         raise ValueError("No tasks or rewards found — check request file format.")
 
+    # ── Go-live date (Thời gian diễn ra) ────────────────────────────────────
+    go_live_date = (
+        general_data.get("thời gian diễn ra", "").strip()
+        or general_data.get("thoi gian dien ra", "").strip()
+    )
+
+    # ── General fields (raw, lowercased keys) ────────────────────────────────
+    general_fields = general_data  # expose for template checks
+
+    # ── Game UI section ──────────────────────────────────────────────────────
+    game_ui: dict[str, str] = {}
+    game_ui_section = _get_section(content, headings, "Game UI")
+    if game_ui_section:
+        for row in _parse_table_rows(game_ui_section):
+            if len(row) >= 2 and not row[0].startswith("#"):
+                # Skip the header row (Field / Value)
+                if row[0].lower().strip() == "field" and row[1].lower().strip() == "value":
+                    continue
+                game_ui[row[0].strip()] = row[1].strip()
+
     return {
         "campaign_name": campaign_name,
         "game_type": game_type,
         "tasks": tasks,
         "rewards": rewards,
+        "go_live_date": go_live_date,
+        "general_fields": general_fields,
+        "game_ui": game_ui,
     }
 
 
