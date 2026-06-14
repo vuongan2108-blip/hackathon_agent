@@ -1,11 +1,13 @@
-# Demo Checklist — Product Ops Campaign Agent (MVP)
+# Demo Checklist — Product Ops Campaign Agent (MVP 1 + 2 + 3)
 
 ---
 
 ## What This MVP Does
 
-- **Review Agent:** Reads a local markdown campaign request, extracts 3 key points (Game Type, Task Triggers, Reward Types), checks each against the local KB allowlist, and outputs a structured review split — *ĐÃ HỖ TRỢ* vs *CẦN PO CONFIRM* — with a specific question for PO on each flagged item.
-- **Setup Guide Agent:** Answers natural-language questions about campaign tool configuration by searching the local KB, returning the relevant steps plus an exact source section reference.
+- **Review Agent (UC1):** Reads a local markdown campaign request, extracts 3 key points (Game Type, Task Triggers, Reward Types), checks each against the local KB allowlist, and outputs a structured review split — *ĐÃ HỖ TRỢ* vs *CẦN PO CONFIRM* — with a specific question for PO on each flagged item.
+- **Setup Guide Agent (UC2):** Answers natural-language questions about campaign tool configuration by searching the local KB, returning the relevant steps plus an exact source section reference.
+- **Ticket Content Generator (UC3):** Runs UC1 + UC2 internally, then drafts up to 4 coordination tickets (Biz / Design / PO / Ops) with SLAs and dependencies. Ops reviews and manually copy-pastes each ticket into Jira.
+- **Local Demo UI (MVP 3):** Streamlit web UI exposing all three use cases in a browser with a download button for UC3 output.
 
 ## What This MVP Does NOT Do
 
@@ -14,6 +16,7 @@
 - Does NOT confirm, approve, or reject campaign requests — only classifies and flags.
 - Does NOT use LLM inference or any cloud service.
 - Does NOT send notifications or messages to any system.
+- Does NOT write tickets to Jira — Ops reviews drafts and copy-pastes manually.
 - All data is local, file-based, and mock-only.
 
 ---
@@ -72,6 +75,24 @@ Full captured output: `demo_outputs/ask_output_sample.txt`
 
 ---
 
+## UI Demo Flow (MVP 3 — Streamlit)
+
+```bash
+streamlit run ui_app.py
+```
+
+Steps:
+
+1. Start the Streamlit app — browser opens at `http://localhost:8501`.
+2. **UC1 tab:** Select `campaign_request_sample_01.md` → click **Run Review** → confirm ĐÃ HỖ TRỢ / CẦN PO CONFIRM split.
+3. **UC2 tab:** Type `cách setup Game Type lucky wheel` → click **Ask** → confirm Lucky Wheel setup steps with Nguồn reference.
+4. **UC3 tab:** Select `campaign_request_sample_01.md` → click **Generate Ticket Content** → confirm 4 tickets appear.
+5. Click **Download as .txt** → save the file for offline review.
+6. Confirm the UI says: *"Ops phải review nội dung bên dưới trước khi copy-paste sang Jira."*
+7. Confirm the UI does **NOT** say "PO phải review trước khi copy-paste".
+
+---
+
 ## Validation Points
 
 Verify each of the following before demo:
@@ -82,21 +103,30 @@ Verify each of the following before demo:
 | 2 | Task "Chụp màn hình chia sẻ campaign" | Appears in **CẦN PO CONFIRM** — no keyword match |
 | 3 | Reward type "vé" | Appears in **CẦN PO CONFIRM** — not in KB allowlist |
 | 4 | Ask command source | Answer includes **"A1. [SCHEME] Lucky Wheel"** in Nguồn line |
-| 5 | Test suite | `python -m pytest` → **49/49 passed** |
+| 5 | Test suite | `python -m pytest` → **88/88 passed** |
+| 6 | UC3 PO ticket | Contains "Chụp màn hình" and "vé" — does NOT contain "Đặt vé máy bay hè" |
+| 7 | UC3 Ops review wording | Output contains "Ops" + "review" + "copy-paste" |
+| 8 | UI download button | Downloads `.txt` with Ops wording; no "PO must review" in label |
 
 ---
 
 ## Run Full Verification
 
 ```bash
-# Review
+# Review (UC1)
 python -m src.app review data/samples/campaign_request_sample_01.md
 
-# Ask
+# Ask (UC2)
 python -m src.app ask "cách setup Game Type lucky wheel"
+
+# Generate ticket content (UC3)
+python -m src.app generate-ticket-content data/samples/campaign_request_sample_01.md
 
 # Tests
 python -m pytest -v
+
+# UI (MVP 3)
+streamlit run ui_app.py
 ```
 
 ---

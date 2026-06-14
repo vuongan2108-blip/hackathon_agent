@@ -44,14 +44,20 @@ hackathon_agent/
 │   ├── app.py              # CLI entry point
 │   ├── core/
 │   │   └── kb_loader.py    # Reads KB files
+│   ├── draft_confirmation/
+│   │   ├── date_utils.py   # Working-day calculator
+│   │   └── generator.py    # UC3 ticket draft generator
 │   ├── review/
 │   │   ├── parser.py       # Parses request markdown
 │   │   └── reviewer.py     # Allowlist checker + output formatter
 │   └── setup_guide/
 │       └── rag.py          # Keyword-based search over setup guide KB
-└── tests/
-    ├── test_review.py
-    └── test_ask.py
+├── tests/
+│   ├── test_review.py
+│   ├── test_ask.py
+│   └── test_draft_confirmation.py
+├── ui_app.py               # Streamlit demo UI (MVP 3)
+└── requirements.txt
 ```
 
 ---
@@ -64,17 +70,31 @@ hackathon_agent/
 # Clone and enter the repo
 cd hackathon_agent
 
-# Install test dependency (only needed for pytest)
-pip install pytest
+# Install all dependencies (pytest + streamlit)
+pip install -r requirements.txt
 ```
-
-No other dependencies required.
 
 ---
 
 ## How to Run
 
-### Review a campaign request
+### Local Demo UI (MVP 3 — Streamlit)
+
+```bash
+streamlit run ui_app.py
+```
+
+Opens a browser at `http://localhost:8501` with three tabs:
+
+- **UC1 · Review Campaign Request** — select a sample file, run the allowlist review, see supported vs. needs-confirm split.
+- **UC2 · Setup Guide Q&A** — type a question, get the matching KB section plus source reference.
+- **UC3 · Generate Ticket Content** — select a sample file, generate up to 4 coordination tickets (Biz / Design / PO / Ops), download as `.txt` for Ops to review and manually copy-paste into Jira.
+
+> No Jira / Confluence / external API connection. All data is local and mock-only.
+
+---
+
+### CLI — Review a campaign request
 
 ```bash
 # Linux / macOS
@@ -118,6 +138,18 @@ python -m src.app ask "tạo reward pool"
 python -m src.app ask "setup leaderboard"
 ```
 
+### Generate ticket content (UC3)
+
+```bash
+# Linux / macOS
+python -m src.app generate-ticket-content data/samples/campaign_request_sample_01.md
+
+# PowerShell (Windows)
+$env:PYTHONIOENCODING="utf-8"; python -m src.app generate-ticket-content data/samples/campaign_request_sample_01.md
+```
+
+Drafts up to 4 coordination tickets (Biz / Design / PO / Ops) and saves a combined `.txt` to `demo_outputs/`. Ops reviews and manually copy-pastes each ticket into Jira — the agent does not write to Jira.
+
 ### Run the test suite
 
 ```bash
@@ -132,13 +164,29 @@ $env:PYTHONIOENCODING="utf-8"; python -m pytest
 
 ## Demo
 
+### CLI demo
+
 ```bash
 # 1. Review the mock Lucky Wheel campaign request
 python -m src.app review data/samples/campaign_request_sample_01.md
 
 # 2. Ask how to set up Lucky Wheel
 python -m src.app ask "cách setup Game Type lucky wheel"
+
+# 3. Generate ticket content
+python -m src.app generate-ticket-content data/samples/campaign_request_sample_01.md
 ```
+
+### UI demo
+
+```bash
+streamlit run ui_app.py
+```
+
+Open `http://localhost:8501`, then:
+1. **UC1 tab** — select `campaign_request_sample_01.md` → Run Review
+2. **UC2 tab** — ask `cách setup Game Type lucky wheel` → Ask
+3. **UC3 tab** — select `campaign_request_sample_01.md` → Generate Ticket Content → Download `.txt`
 
 **Expected review output highlights:**
 - "Đặt vé máy bay hè" → classified as **payment** (keyword "đặt") ✅
