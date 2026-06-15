@@ -69,7 +69,7 @@ $env:PYTHONIOENCODING="utf-8"; python -m src.app ask "cách setup Game Type luck
 ### Expected Output Summary
 
 - Returns Step 0 through Step 7 of Lucky Wheel setup (General Info, Mechanism, UI Config, Review & Create).
-- Ends with: `**Nguồn:** https://events-tool.zalopay.vn/ — A1. [SCHEME] Lucky Wheel`
+- Ends with: `**Nguồn KB nội bộ:** A1. [SCHEME] Lucky Wheel`
 
 Full captured output: `demo_outputs/ask_output_sample.txt`
 
@@ -88,6 +88,7 @@ Steps:
 3. **UC2 tab:** Type `cách setup Game Type lucky wheel` → click **Ask** → confirm Lucky Wheel setup steps with Nguồn reference.
 4. **UC3 tab:** Select `campaign_request_sample_01.md` → click **Generate Ticket Content** → confirm 4 tickets appear.
 5. Click **Download as .txt** → save the file for offline review.
+6. **UC4 tab:** Select `campaign_request_sample_01.md` → click **Generate Timeline** → confirm 4-row Gantt grid with Ops 3 tracks.
 6. Confirm the UI says: *"Ops phải review nội dung bên dưới trước khi copy-paste sang Jira."*
 7. Confirm the UI does **NOT** say "PO phải review trước khi copy-paste".
 
@@ -103,10 +104,12 @@ Verify each of the following before demo:
 | 2 | Task "Chụp màn hình chia sẻ campaign" | Appears in **CẦN PO CONFIRM** — no keyword match |
 | 3 | Reward type "vé" | Appears in **CẦN PO CONFIRM** — not in KB allowlist |
 | 4 | Ask command source | Answer includes **"A1. [SCHEME] Lucky Wheel"** in Nguồn line |
-| 5 | Test suite | `python -m pytest` → **88/88 passed** |
+| 5 | Test suite | `python -m pytest` → **133/133 passed** |
 | 6 | UC3 PO ticket | Contains "Chụp màn hình" and "vé" — does NOT contain "Đặt vé máy bay hè" |
 | 7 | UC3 Ops review wording | Output contains "Ops" + "review" + "copy-paste" |
 | 8 | UI download button | Downloads `.txt` with Ops wording; no "PO must review" in label |
+| 9 | UC4 CLI output | 4 rows: Biz / Design / Product Confirmation / Ops; Ops D0 shows `▓ clear` only |
+| 10 | UC4 review note | Output ends with "Ops: review timeline below" |
 
 ---
 
@@ -121,6 +124,9 @@ python -m src.app ask "cách setup Game Type lucky wheel"
 
 # Generate ticket content (UC3)
 python -m src.app generate-ticket-content data/samples/campaign_request_sample_01.md
+
+# Generate timeline (UC4)
+python -m src.app timeline data/samples/campaign_request_sample_01.md
 
 # Tests
 python -m pytest -v

@@ -50,13 +50,19 @@ hackathon_agent/
 │   ├── review/
 │   │   ├── parser.py       # Parses request markdown
 │   │   └── reviewer.py     # Allowlist checker + output formatter
-│   └── setup_guide/
-│       └── rag.py          # Keyword-based search over setup guide KB
+│   ├── setup_guide/
+│   │   └── rag.py          # Keyword-based search over setup guide KB
+│   └── timeline/
+│       └── generator.py    # UC4 Gantt-style markdown timeline
 ├── tests/
 │   ├── test_review.py
 │   ├── test_ask.py
-│   └── test_draft_confirmation.py
-├── ui_app.py               # Streamlit demo UI (MVP 3)
+│   ├── test_draft_confirmation.py
+│   └── test_timeline.py
+├── demo_outputs/
+│   ├── timeline_output_sample.txt
+│   └── ...
+├── ui_app.py               # Streamlit demo UI (4 tabs: UC1–UC4)
 └── requirements.txt
 ```
 
@@ -84,11 +90,12 @@ pip install -r requirements.txt
 streamlit run ui_app.py
 ```
 
-Opens a browser at `http://localhost:8501` with three tabs:
+Opens a browser at `http://localhost:8501` with four tabs:
 
 - **UC1 · Review Campaign Request** — select a sample file, run the allowlist review, see supported vs. needs-confirm split.
 - **UC2 · Setup Guide Q&A** — type a question, get the matching KB section plus source reference.
-- **UC3 · Generate Ticket Content** — select a sample file, generate up to 4 coordination tickets (Biz / Design / PO / Ops), download as `.txt` for Ops to review and manually copy-paste into Jira.
+- **UC3 · Generate Ticket Content** — select a sample file, generate up to 4 coordination tickets (Biz / Design / Product Confirmation / Ops), download as `.txt` for Ops to review and manually copy-paste into Jira.
+- **UC4 · Timeline Campaign Assistant** — select a sample file, generate a Gantt-style markdown timeline with 4 actor rows and one column per calendar date (D0 → T).
 
 > No Jira / Confluence / external API connection. All data is local and mock-only.
 
@@ -148,7 +155,19 @@ python -m src.app generate-ticket-content data/samples/campaign_request_sample_0
 $env:PYTHONIOENCODING="utf-8"; python -m src.app generate-ticket-content data/samples/campaign_request_sample_01.md
 ```
 
-Drafts up to 4 coordination tickets (Biz / Design / PO / Ops) and saves a combined `.txt` to `demo_outputs/`. Ops reviews and manually copy-pastes each ticket into Jira — the agent does not write to Jira.
+Drafts up to 4 coordination tickets (Biz / Design / Product Confirmation / Ops) and saves a combined `.txt` to `demo_outputs/`. Ops reviews and manually copy-pastes each ticket into Jira — the agent does not write to Jira.
+
+### Generate campaign timeline (UC4)
+
+```bash
+# Linux / macOS
+python -m src.app timeline data/samples/campaign_request_sample_01.md
+
+# PowerShell (Windows)
+$env:PYTHONIOENCODING="utf-8"; python -m src.app timeline data/samples/campaign_request_sample_01.md
+```
+
+Generates a Gantt-style markdown grid: 4 fixed actor rows (Biz / Design / Product Confirmation / Ops), one column per calendar date from D0 (today) through T (go-live). Ops row has 3 internal tracks — only `clear` starts at D0; `chưa-clear` waits for Product Confirmation; `UI` waits for Design. Saves to `demo_outputs/timeline_output_sample.txt`.
 
 ### Run the test suite
 
@@ -175,6 +194,9 @@ python -m src.app ask "cách setup Game Type lucky wheel"
 
 # 3. Generate ticket content
 python -m src.app generate-ticket-content data/samples/campaign_request_sample_01.md
+
+# 4. Generate campaign timeline
+python -m src.app timeline data/samples/campaign_request_sample_01.md
 ```
 
 ### UI demo
@@ -187,6 +209,7 @@ Open `http://localhost:8501`, then:
 1. **UC1 tab** — select `campaign_request_sample_01.md` → Run Review
 2. **UC2 tab** — ask `cách setup Game Type lucky wheel` → Ask
 3. **UC3 tab** — select `campaign_request_sample_01.md` → Generate Ticket Content → Download `.txt`
+4. **UC4 tab** — select `campaign_request_sample_01.md` → Generate Timeline → see Gantt grid → Download `.txt`
 
 **Expected review output highlights:**
 - "Đặt vé máy bay hè" → classified as **payment** (keyword "đặt") ✅
@@ -194,6 +217,13 @@ Open `http://localhost:8501`, then:
 - Reward "vé" → **CẦN PO CONFIRM** (not in allowlist)
 
 **Expected ask output:** Step-by-step Lucky Wheel setup guide with source `A1. [SCHEME] Lucky Wheel`.
+
+---
+
+## Demo Readiness
+
+- **[DEMO_SCRIPT.md](DEMO_SCRIPT.md)** — 3-minute and 5-minute demo scripts with talking points for each use case.
+- **[FINAL_DEMO_CHECKLIST.md](FINAL_DEMO_CHECKLIST.md)** — pre-demo setup, verification commands, expected outputs, and troubleshooting guide.
 
 ---
 
