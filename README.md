@@ -1,16 +1,73 @@
 # Product Ops Campaign Agent
 
-A local file-based CLI tool that helps PO / Ops teams review campaign requests and look up setup instructions — without waiting for manual reviews.
+An AI-powered assistant that supports the end-to-end campaign setup workflow for Product Operations — reducing dependency on Product Owners, minimizing setup errors, and accelerating campaign delivery.
 
 ---
 
-## Purpose
+## Problem
 
-Two agents in one CLI:
+Product Operations spend significant time setting up campaigns due to:
 
-1. **Review Agent** — reads a campaign request (markdown file), extracts the 3 key points (Game Type, Task Triggers, Reward Types), checks each against the local KB allowlist, and outputs a clear split: *already supported* vs *needs PO confirm*.
+- Unclear or incomplete campaign requirements
+- Scattered or inconsistent documentation
+- Dependency on Product Owners for clarification and setup guidance
+- Manual stakeholder coordination and follow-up
 
-2. **Setup Guide Agent** — answers natural-language questions about how to configure the campaign tool, pulling answers strictly from the local KB. Returns the answer plus the exact source section.
+As a result, campaign preparation becomes time-consuming, error-prone, and heavily dependent on individual knowledge.
+
+---
+
+## User
+
+**Primary user:** Product Operations (Product Ops)
+
+---
+
+## Solution
+
+Product Ops Campaign Agent is an AI-powered assistant that supports the end-to-end campaign setup workflow through four integrated use cases:
+
+### UC1 – Campaign Review Assistant
+
+Review campaign requests and identify supported configurations, available information, and items requiring PO confirmation.
+
+**Value:** Reduce dependency on Product Owners during campaign review · Improve review consistency · Accelerate campaign validation
+
+### UC2 – Setup Guide Assistant
+
+Provide setup guidance from the internal knowledge base.
+
+**Value:** Reduce setup errors · Reduce dependency on PO support · Improve operational accuracy
+
+### UC3 – Ticket Content Generator
+
+Generate stakeholder ticket content automatically using the campaign request, UC1 review result, and UC2 setup information.
+
+**Value:** Save ticket drafting effort · Improve ticket quality and consistency · Accelerate stakeholder coordination
+
+### UC4 – Campaign Timeline Assistant
+
+Generate execution timelines based on working-day SLA, stakeholder dependencies, and go-live date.
+
+**Value:** Improve visibility · Simplify follow-up activities · Reduce delivery delays
+
+---
+
+## Value Delivered
+
+The four use cases form a complete workflow that helps Product Operations:
+
+- Reduce wasted operational effort
+- Reduce dependency on stakeholders for information and support
+- Minimize setup errors
+- Improve productivity
+- Accelerate campaign delivery
+
+---
+
+## Hackathon Submission
+
+Product Ops Campaign Agent helps Product Operations review campaign requests, retrieve setup guidance, generate stakeholder tickets, and track execution timelines. It reduces dependency on PO support, minimizes setup errors, saves operational effort, and accelerates campaign delivery.
 
 ---
 
