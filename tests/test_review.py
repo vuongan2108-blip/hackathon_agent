@@ -161,9 +161,7 @@ class TestReviewer:
         assert "payment" in dat_task.detail, (
             f"Expected trigger=payment, got: {dat_task.detail}"
         )
-        assert "đặt" in dat_task.detail.lower(), (
-            f"Expected keyword 'đặt' in detail, got: {dat_task.detail}"
-        )
+        # keyword no longer shown in detail — trigger type is sufficient proof
 
     def test_chup_man_hinh_flagged_as_needs_confirm(self):
         """'Chụp màn hình chia sẻ campaign' must be in CẦN PO CONFIRM (no keyword match)."""

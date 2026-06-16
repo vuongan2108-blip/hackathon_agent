@@ -1,5 +1,7 @@
 """Review agent — checks campaign request against KB allowlist."""
 
+from __future__ import annotations
+
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Literal
@@ -89,7 +91,7 @@ def review_request(filepath: str) -> ReviewResult:
                 label="Game Type",
                 content=game_type_raw,
                 supported=True,
-                detail=f'✅ (có trong allowlist)',
+                detail='✅',
             )
         )
     else:
@@ -117,7 +119,7 @@ def review_request(filepath: str) -> ReviewResult:
                     label=f'Task "{name}"',
                     content=f'{name}: {desc}' if desc else name,
                     supported=True,
-                    detail=f'→ trigger = {trigger} ✅ (keyword "{kw}")',
+                    detail=f'→ trigger = {trigger} ✅',
                 )
             )
         else:
@@ -194,7 +196,7 @@ def format_review(result: ReviewResult) -> str:
             lines.append(f"{i}. [{p.category}] {p.label}")
             lines.append(f"   Nội dung: {p.content}")
             lines.append(f"   Lý do: {p.detail}")
-            lines.append(f"   Hỏi PO: {p.po_question}")
+            lines.append(f"   Cần PO confirm: {p.po_question}")
             lines.append("")
     else:
         lines.append("(không có — tất cả point đã hỗ trợ)")
