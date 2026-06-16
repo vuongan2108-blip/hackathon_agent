@@ -10,6 +10,7 @@ Usage:
 """
 
 import sys
+from typing import Optional
 
 
 def cmd_review(args: list[str]) -> int:
@@ -34,7 +35,7 @@ def cmd_review(args: list[str]) -> int:
         return 1
 
 
-def _run_draft(filepath: str, save_to: str | None = None) -> int:
+def _run_draft(filepath: str, save_to: Optional[str] = None) -> int:
     """Shared logic for draft-confirmation and generate-ticket-content."""
     try:
         from src.draft_confirmation.generator import generate_draft
