@@ -1,5 +1,7 @@
 """Parse a campaign request markdown file into structured data."""
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 

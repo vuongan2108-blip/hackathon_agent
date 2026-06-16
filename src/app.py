@@ -70,6 +70,17 @@ def cmd_draft_confirmation(args: list[str]) -> int:
     return _run_draft(args[0])
 
 
+def cmd_draft(args: list[str]) -> int:
+    """draft: alias for draft-confirmation."""
+    if not args:
+        print(
+            "Usage: python -m src.app draft <request_file>",
+            file=sys.stderr,
+        )
+        return 1
+    return _run_draft(args[0])
+
+
 def cmd_generate_ticket_content(args: list[str]) -> int:
     """generate-ticket-content: same as draft-confirmation, also saves combined output file."""
     if not args:
@@ -140,8 +151,8 @@ def main() -> int:
     if not argv:
         print(
             "Commands: review <file>  |  ask \"<question>\"  |  "
-            "draft-confirmation <file>  |  generate-ticket-content <file>  |  "
-            "timeline <file>"
+            "draft <file>  |  draft-confirmation <file>  |  "
+            "generate-ticket-content <file>  |  timeline <file>"
         )
         return 0
 
@@ -152,7 +163,7 @@ def main() -> int:
         return cmd_review(rest)
     elif command == "ask":
         return cmd_ask(rest)
-    elif command == "draft-confirmation":
+    elif command in ("draft", "draft-confirmation"):
         return cmd_draft_confirmation(rest)
     elif command == "generate-ticket-content":
         return cmd_generate_ticket_content(rest)
@@ -161,7 +172,8 @@ def main() -> int:
     else:
         print(
             f"Unknown command: {command}. "
-            "Use 'review', 'ask', 'draft-confirmation', 'generate-ticket-content', or 'timeline'.",
+            "Use 'review', 'ask', 'draft', 'draft-confirmation', "
+            "'generate-ticket-content', or 'timeline'.",
             file=sys.stderr,
         )
         return 1

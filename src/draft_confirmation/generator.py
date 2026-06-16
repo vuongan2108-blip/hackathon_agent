@@ -23,7 +23,6 @@ from typing import Optional
 
 from src.draft_confirmation.date_utils import (
     add_working_days,
-    add_calendar_days,
     subtract_working_days,
     fmt,
 )
@@ -43,6 +42,23 @@ REQUIRED_FIELDS: list[str] = [
     "mô tả chương trình",  # program description — commonly missing
 ]
 
+# Human-readable display labels for each required field
+_FIELD_LABELS: dict[str, str] = {
+    "campaign name":        "Campaign Name",
+    "game type":            "Game Type",
+    "marketing code":       "Marketing Code",
+    "thời gian diễn ra":    "Thời gian diễn ra (go-live)",
+    "start date":           "Start Date",
+    "end date":             "End Date",
+    "tnc link":             "TnC Link",
+    "mô tả chương trình":   "Mô tả chương trình",
+}
+
+
+def _strip_md(s: str) -> str:
+    """Remove markdown bold/italic markers (**) from a string."""
+    return s.replace("**", "").replace("__", "").strip()
+
 
 # ── Data classes ──────────────────────────────────────────────────────────────
 
@@ -50,13 +66,14 @@ REQUIRED_FIELDS: list[str] = [
 class Ticket:
     role: str          # Biz / Design / PO / Ops
     assignee: str      # same as role (placeholder for Ops to fill)
-    condition: str     # why this ticket was generated
+    condition: str     # campaign name this ticket is for
     context: str
     request_body: str
     related_doc: str
     sla: str
     due_date: str
     dependency: str = ""
+    brief: bool = False  # if True, render only Context + Request (Ops ticket)
 
     def render(self) -> str:
         lines = [
@@ -66,12 +83,13 @@ class Ticket:
             f"nhờ bạn support giúp:",
             "",
             f"• Context:      {self.context}",
-            f"• Request:      {self.request_body}",
-            f"• Related doc:  {self.related_doc}",
-            f"• Timeline:     SLA {self.sla} — due {self.due_date}",
+            f"• Request:\n{self.request_body}",
         ]
-        if self.dependency:
-            lines.append(f"• Dependency:   {self.dependency}")
+        if not self.brief:
+            lines.append(f"• Related doc:  {self.related_doc}")
+            lines.append(f"• Timeline:     SLA {self.sla} — due {self.due_date}")
+            if self.dependency:
+                lines.append(f"• Dependency:   {self.dependency}")
         return "\n".join(lines)
 
 
@@ -87,39 +105,39 @@ class DraftResult:
     errors: list[str] = field(default_factory=list)
 
     def render(self) -> str:
+        """Returns ticket content only — starts directly with first ticket block."""
         lines = []
-        lines.append(f"=== DRAFT CONFIRMATION TICKETS: {self.campaign_name} ===")
-        lines.append(
-            f"Generated: {self.d0} | T (go-live): {self.go_live_date}"
-        )
-        lines.append(
-            f"Milestones: T−2 = {self.milestone_t2} (gửi link test)"
-            f" | T−1 = {self.milestone_t1} (update theo feedback)"
-            f" | T = {self.go_live_date} (go live)"
-        )
-        lines.append(
-            "⚠️  Ops phải review nội dung bên dưới trước khi copy-paste sang Jira. "
-            "Agent chỉ soạn nháp — KHÔNG ghi Jira tự động."
-        )
-
         if self.guardrail_alert:
-            lines.append(f"\n⚠️  GUARDRAIL: {self.guardrail_alert}")
-
-        if self.errors:
+            lines.append(f"GUARDRAIL: {self.guardrail_alert}")
             lines.append("")
+        if self.errors:
             for e in self.errors:
                 lines.append(f"[ERROR] {e}")
-
-        lines.append("")
+            return "\n".join(lines)
         for ticket in self.tickets:
             lines.append(ticket.render())
             lines.append("")
+        while lines and lines[-1] == "":
+            lines.pop()
+        return "\n".join(lines)
 
-        lines.append(
-            "--- END OF DRAFT ---\n"
-            "Ops: review xong thì copy từng ticket vào Jira. "
-            "Điền tên người/nhóm thật vào chỗ [assignee] trước khi gửi."
-        )
+    def render_metadata(self) -> str:
+        """Returns campaign metadata header — for display, not for Jira copy-paste."""
+        lines = [
+            f"=== DRAFT CONFIRMATION TICKETS: {self.campaign_name} ===",
+            f"Generated: {self.d0} | T (go-live): {self.go_live_date}",
+            (
+                f"Milestones: T-2 = {self.milestone_t2} (gửi link test)"
+                f" | T-1 = {self.milestone_t1} (update theo feedback)"
+                f" | T = {self.go_live_date} (go live)"
+            ),
+            (
+                "Ops phai review noi dung ben duoi truoc khi copy-paste sang Jira. "
+                "Agent chi soan nhap — KHONG ghi Jira tu dong."
+            ),
+        ]
+        if self.guardrail_alert:
+            lines.append(f"\nGUARDRAIL: {self.guardrail_alert}")
         return "\n".join(lines)
 
 
@@ -140,6 +158,13 @@ def generate_draft(filepath: str) -> DraftResult:
     game_ui: dict[str, str] = request.get("game_ui", {})
     go_live_str = request.get("go_live_date", "").strip()
 
+    # Short display name for the input file (relative if inside cwd)
+    try:
+        rel_path = Path(filepath).resolve().relative_to(Path.cwd())
+        input_file_ref = str(rel_path)
+    except ValueError:
+        input_file_ref = filepath
+
     d0: date = datetime.today().date()
     errors: list[str] = []
 
@@ -147,15 +172,15 @@ def generate_draft(filepath: str) -> DraftResult:
     if not go_live_str:
         return DraftResult(
             campaign_name=campaign_name,
-            go_live_date="(chưa có)",
+            go_live_date="(chua co)",
             d0=fmt(d0),
             milestone_t2="N/A",
             milestone_t1="N/A",
             guardrail_alert="",
             errors=[
-                "Thiếu ngày go-live (Thời gian diễn ra) trong request. "
-                "Đây là thiếu thông tin request — Ops cần sinh Biz ticket "
-                "hỏi biz bổ sung, sau đó chạy lại lệnh này."
+                "Thieu ngay go-live (Thoi gian dien ra) trong request. "
+                "Day la thieu thong tin request — Ops can them thong tin go-live, "
+                "sau do chay lai lenh nay."
             ],
         )
 
@@ -170,8 +195,8 @@ def generate_draft(filepath: str) -> DraftResult:
             milestone_t1="N/A",
             guardrail_alert="",
             errors=[
-                f"Không đọc được ngày go-live '{go_live_str}'. "
-                "Cần format YYYY-MM-DD."
+                f"Khong doc duoc ngay go-live '{go_live_str}'. "
+                "Can format YYYY-MM-DD."
             ],
         )
 
@@ -179,141 +204,136 @@ def generate_draft(filepath: str) -> DraftResult:
     t_minus_2: date = subtract_working_days(t, 2)
     t_minus_1: date = subtract_working_days(t, 1)
 
-    # ── Due dates per SLA ─────────────────────────────────────────────────────
-    due_biz: date = add_working_days(d0, 1)
-    due_po: date = add_working_days(d0, 1)
-    due_design: date = add_calendar_days(d0, 7)
-    due_ops: date = add_calendar_days(d0, 14)
+    # ── Due dates per SLA (all working days) ──────────────────────────────────
+    due_biz: date    = add_working_days(d0, 1)
+    due_po: date     = add_working_days(d0, 1)
+    due_design: date = add_working_days(d0, 5)
+    due_ops: date    = add_working_days(d0, 10)
 
     # ── Guardrail: (T − D0) < 14 calendar days ───────────────────────────────
     delta_days = (t - d0).days
     guardrail = ""
     if delta_days < 14:
         guardrail = (
-            f"(T − D0) = {delta_days} ngày < 2 tuần. "
-            "Timeline ngắn — Ops cần điều chỉnh lịch; "
-            "timeline xuất bên dưới giữ nguyên để tham khảo."
+            f"(T - D0) = {delta_days} ngay < 2 tuan. "
+            "Timeline ngan — Ops can dieu chinh lich; "
+            "timeline xuat ben duoi giu nguyen de tham khao."
         )
 
     # ── UC1: run review internally ────────────────────────────────────────────
     uc1: ReviewResult = review_request(filepath)
-    unclear_items = [p for p in uc1.needs_confirm]
-    clear_items = [p for p in uc1.supported]
+    unclear_items = list(uc1.needs_confirm)
+    clear_items   = list(uc1.supported)
 
-    # ── UC2: setup guide lookup for game type (clear items) ──────────────────
-    setup_guide_answer = answer_question(f"cách setup {game_type}")
-    if "không tìm thấy" in setup_guide_answer.lower():
-        setup_guide_ref = "Không có hướng dẫn trong KB nội bộ — hỏi PO."
+    # ── UC2: setup guide lookup for game type ────────────────────────────────
+    setup_guide_answer = answer_question(f"cach setup {game_type}")
+    if "khong tim thay" in _strip_md(setup_guide_answer).lower():
+        setup_guide_ref = "Khong co huong dan trong KB noi bo — hoi PO."
     else:
-        # Extract just the Nguồn line
         nguon_line = next(
-            (ln for ln in setup_guide_answer.splitlines() if "Nguồn" in ln),
+            (ln for ln in setup_guide_answer.splitlines() if "Ngu" in ln and "n" in ln),
             setup_guide_answer.split("\n")[0],
         )
-        setup_guide_ref = nguon_line.replace("**", "").strip()
+        setup_guide_ref = _strip_md(nguon_line)
 
     # ── Build tickets ─────────────────────────────────────────────────────────
     tickets: list[Ticket] = []
 
-    # TICKET 1 — BIZ (missing required fields or missing descriptions)
-    missing_fields = [
-        f for f in REQUIRED_FIELDS
-        if f not in general_fields or not general_fields[f].strip()
-    ]
-    if missing_fields:
-        field_list = "; ".join(f'"{f}"' for f in missing_fields)
+    # ── TICKET 1: BIZ ────────────────────────────────────────────────────────
+    # Detect each missing/incomplete field with a specific reason
+    missing_field_details: list[tuple[str, str]] = []
+    for f in REQUIRED_FIELDS:
+        label = _FIELD_LABELS.get(f, f.title())
+        if f not in general_fields:
+            missing_field_details.append((label, "chua co trong request"))
+        elif not general_fields[f].strip():
+            missing_field_details.append((label, "chua co noi dung"))
+
+    if missing_field_details:
+        biz_req_lines = [
+            "Nho ban bo sung/cap nhat cac field con thieu hoac thieu mo ta trong request:"
+        ]
+        for label, reason in missing_field_details:
+            biz_req_lines.append(f"  - {label}: {reason}")
         tickets.append(Ticket(
             role="Biz",
             assignee="Biz",
             condition=campaign_name,
             context=(
                 f"Campaign '{campaign_name}' (Game Type: {game_type}) "
-                "đang trong giai đoạn chuẩn bị. "
-                "Một số field trong request còn thiếu hoặc thiếu mô tả."
+                "dang trong giai doan chuan bi. "
+                "Mot so field trong request con thieu hoac thieu mo ta."
             ),
-            request_body=(
-                f"Nhờ bạn input lại đầy đủ các field còn thiếu/thiếu mô tả: "
-                f"{field_list}."
-            ),
-            related_doc="File request đính kèm; template: template_request_campaign_v1",
+            request_body="\n".join(biz_req_lines),
+            related_doc=f"File request dau vao cua UC1: {input_file_ref}",
             sla="1 working day",
             due_date=fmt(due_biz),
         ))
 
-    # TICKET 2 — DESIGN (Game UI section present)
+    # ── TICKET 2: DESIGN ─────────────────────────────────────────────────────
     if game_ui:
-        ui_brief_lines = [f"{k}: {v}" for k, v in game_ui.items()]
-        ui_brief = "; ".join(ui_brief_lines)
+        ui_lines = ["Nho ban thiet ke UI theo Game UI brief duoi day:"]
+        for k, v in game_ui.items():
+            ui_lines.append(f"  - {k}: {v}")
         tickets.append(Ticket(
             role="Design",
             assignee="Design",
             condition=campaign_name,
             context=(
-                f"Campaign '{campaign_name}' dùng Game Type: {game_type}. "
-                "Request đã có phần Game UI cần thiết kế."
+                f"Campaign '{campaign_name}' dung Game Type: {game_type}. "
+                "Request da co phan Game UI can thiet ke."
             ),
-            request_body=(
-                f"Nhờ bạn thiết kế UI theo Game UI brief: {ui_brief}."
+            request_body="\n".join(ui_lines),
+            related_doc=(
+                f"File request dau vao cua UC1: {input_file_ref}; "
+                f"KB setup guide: {setup_guide_ref}"
             ),
-            related_doc="File request đính kèm; KB: " + setup_guide_ref,
-            sla="7 ngày (calendar)",
+            sla="5 working days",
             due_date=fmt(due_design),
         ))
 
-    # TICKET 3 — PO (unclear / not-available items from UC1)
+    # ── TICKET 3: PRODUCT CONFIRMATION ───────────────────────────────────────
     if unclear_items:
-        unclear_list = "; ".join(
-            f'[{p.category}] {p.label}: {p.detail}' for p in unclear_items
-        )
+        pc_lines = ["Nho Product Team confirm cac hang muc sau:"]
+        for i, p in enumerate(unclear_items, start=1):
+            # Determine item type label
+            if p.category == "TASK":
+                type_label = "Task"
+            elif p.category == "REWARD":
+                type_label = "Reward"
+            else:
+                type_label = p.category
+
+            # Extract a short item name from the label
+            item_name = (
+                p.label
+                .replace('Task "', "").replace('"', "")
+                .replace("Reward ", "").strip()
+            )
+            pc_lines.append(f"\n{i}. {type_label}: {item_name}")
+            pc_lines.append(f"   - Noi dung request: {p.content}")
+            pc_lines.append(f"   - Ly do can confirm: {p.detail}")
+            if p.po_question:
+                pc_lines.append(f"   - Can PO confirm: {p.po_question}")
+
         tickets.append(Ticket(
-            role="PO",
-            assignee="PO",
+            role="Product Confirmation",
+            assignee="Product Team",
             condition=campaign_name,
             context=(
-                f"Kết quả review UC1 cho campaign '{campaign_name}' "
-                "có một số hạng mục chưa available hoặc chưa rõ trigger."
+                f"Ket qua review UC1 cho campaign '{campaign_name}' "
+                "co mot so hang muc chua available hoac chua ro trigger/loai qua."
             ),
-            request_body=(
-                f"Nhờ bạn confirm các điểm chưa available/chưa rõ: "
-                f"{unclear_list}."
+            request_body="\n".join(pc_lines),
+            related_doc=(
+                f"File request dau vao cua UC1: {input_file_ref}"
             ),
-            related_doc="Output UC1 (review) đính kèm; file request đính kèm",
             sla="1 working day",
             due_date=fmt(due_po),
         ))
 
-    # TICKET 4 — OPS (always generated; 3 parts)
-    clear_summary = (
-        "; ".join(f'[{p.category}] {p.label}' for p in clear_items)
-        if clear_items else "(không có)"
-    )
-    unclear_summary = (
-        "; ".join(f'[{p.category}] {p.label}' for p in unclear_items)
-        if unclear_items else "(không có)"
-    )
+    # ── TICKET 4: OPS ────────────────────────────────────────────────────────
     has_ui = bool(game_ui)
-
-    ops_request_lines = [
-        "Setup campaign theo request đính kèm. Ba phần tiến hành như sau:",
-        f"  1. [Phần clear — start ngay D0={fmt(d0)}]",
-        f"     Hạng mục: {clear_summary}",
-        f"     Tham khảo: {setup_guide_ref}",
-        f"  2. [Phần chưa-clear — chờ PO ticket xong, due {fmt(due_po)}]",
-        f"     Hạng mục: {unclear_summary}",
-    ]
-    if has_ui:
-        ops_request_lines += [
-            f"  3. [Phần config UI — chờ Design ticket xong, due {fmt(due_design)}]",
-            f"     Game UI: {'; '.join(f'{k}: {v}' for k, v in game_ui.items())}",
-        ]
-    else:
-        ops_request_lines.append(
-            "  3. [Phần config UI] — Không có section Game UI trong request; bỏ qua."
-        )
-
-    depend_note = f"Phần 2 depend PO ticket (due {fmt(due_po)})"
-    if has_ui:
-        depend_note += f"; Phần 3 depend Design ticket (due {fmt(due_design)})"
 
     tickets.append(Ticket(
         role="Ops",
@@ -321,17 +341,16 @@ def generate_draft(filepath: str) -> DraftResult:
         condition=campaign_name,
         context=(
             f"Campaign '{campaign_name}' (Game Type: {game_type}, "
-            f"go-live T = {fmt(t)}). "
-            "Bộ ticket điều phối đã được soạn đầy đủ."
+            f"go-live T = {fmt(t)}) can duoc setup theo request da review."
         ),
-        request_body="\n".join(ops_request_lines),
-        related_doc=(
-            "File request đính kèm (Confluence/local); "
-            f"KB setup guide: {setup_guide_ref}"
+        request_body=(
+            "Nho Ops setup campaign theo cac hang muc da clear trong request. "
+            "Cac phan con phu thuoc PO/Biz/Design se theo timeline o UC4."
         ),
-        sla="2 tuần (calendar)",
+        related_doc="",
+        sla="10 working days",
         due_date=fmt(due_ops),
-        dependency=depend_note,
+        brief=True,
     ))
 
     return DraftResult(

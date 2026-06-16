@@ -3,6 +3,8 @@ Setup Guide RAG — keyword-based search over local KB.
 No external API calls. Score threshold = 70.
 """
 
+from __future__ import annotations
+
 import re
 from src.core.kb_loader import load_setup_guide_sections
 
@@ -108,7 +110,7 @@ def answer_question(question: str) -> str:
 
     # Build answer from section content
     lines = []
-    lines.append(f"**{section['title']}**")
+    lines.append(section["title"])
     lines.append("")
 
     # Extract readable content (skip metadata lines)
@@ -120,17 +122,14 @@ def answer_question(question: str) -> str:
             continue
         if stripped.startswith(">"):
             continue
-        content_lines.append(line)
+        # Strip markdown bold markers from content
+        content_lines.append(line.replace("**", ""))
 
     lines.append("\n".join(content_lines).strip())
     lines.append("")
 
-    # Source
-    source = section.get("source", "")
+    # Source — display internal KB reference only, no raw URL
     section_ref = f"{section['id']}. {section['title']}"
-    if source:
-        lines.append(f"**Nguồn:** {source} — {section_ref}")
-    else:
-        lines.append(f"**Nguồn:** KB nội bộ — {section_ref}")
+    lines.append(f"Nguồn KB nội bộ: {section_ref}")
 
     return "\n".join(lines)

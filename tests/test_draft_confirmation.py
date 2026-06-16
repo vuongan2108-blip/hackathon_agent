@@ -138,7 +138,7 @@ class TestGenerator:
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
         roles = [t.role for t in result.tickets]
-        assert "PO" in roles, f"Expected PO ticket. Tickets: {roles}"
+        assert "Product Confirmation" in roles, f"Expected PO ticket. Tickets: {roles}"
 
     def test_ops_ticket_always_generated(self):
         """Ops ticket must always be generated."""
@@ -147,26 +147,27 @@ class TestGenerator:
         roles = [t.role for t in result.tickets]
         assert "Ops" in roles, f"Expected Ops ticket. Tickets: {roles}"
 
-    def test_ops_ticket_has_three_parts(self):
-        """Ops ticket body must reference all 3 parts: clear, chưa-clear, UI."""
+    def test_ops_ticket_has_clear_mention(self):
+        """Ops ticket request_body must mention 'clear'."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
         ops = next(t for t in result.tickets if t.role == "Ops")
-        assert "clear" in ops.request_body.lower()
-        assert "chưa-clear" in ops.request_body or "chưa clear" in ops.request_body.lower()
-        assert "ui" in ops.request_body.lower()
+        assert "clear" in ops.request_body.lower(), (
+            f"Ops request_body must mention 'clear'. Body: {ops.request_body}"
+        )
 
-    def test_ops_ticket_has_dependency(self):
+    def test_ops_ticket_is_brief(self):
+        """Ops ticket must use brief=True (no related_doc/timeline/dependency in render)."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
         ops = next(t for t in result.tickets if t.role == "Ops")
-        assert ops.dependency, "Ops ticket must have dependency note"
+        assert ops.brief is True, "Ops ticket must have brief=True"
 
     def test_po_ticket_contains_unclear_items(self):
         """PO ticket must list the UC1 needs-confirm items."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
-        po = next((t for t in result.tickets if t.role == "PO"), None)
+        po = next((t for t in result.tickets if t.role == "Product Confirmation"), None)
         assert po is not None
         # "Chụp màn hình" and "vé" are the two unclear items
         assert "Chụp" in po.request_body or "chụp" in po.request_body.lower()
@@ -185,14 +186,24 @@ class TestGenerator:
         for ticket in result.tickets:
             assert ticket.due_date, f"{ticket.role} ticket missing due_date"
 
-    def test_render_output_contains_headers(self):
+    def test_render_output_contains_ticket_blocks(self):
+        """render() returns only ticket content — no campaign metadata header."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
         output = result.render()
-        assert "=== DRAFT CONFIRMATION TICKETS:" in output
-        assert "Milestones:" in output
         assert "TICKET: BIZ" in output
         assert "TICKET: OPS" in output
+        assert "=== DRAFT CONFIRMATION TICKETS:" not in output
+        assert "Milestones:" not in output
+
+    def test_render_metadata_contains_campaign_info(self):
+        """render_metadata() returns campaign header, milestones, and Ops review warning."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        meta = result.render_metadata()
+        assert "=== DRAFT CONFIRMATION TICKETS:" in meta
+        assert "Milestones:" in meta
+        assert "Ops" in meta
 
     # ── Validation-point tests (spec compliance) ──────────────────────────────
 
@@ -200,7 +211,7 @@ class TestGenerator:
         """PO ticket must include 'Chụp màn hình chia sẻ campaign' (unsupported task)."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
-        po = next(t for t in result.tickets if t.role == "PO")
+        po = next(t for t in result.tickets if t.role == "Product Confirmation")
         assert "Chụp" in po.request_body or "chụp" in po.request_body.lower(), (
             f"PO ticket body: {po.request_body}"
         )
@@ -209,7 +220,7 @@ class TestGenerator:
         """PO ticket must include reward 'vé' (not in allowlist)."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
-        po = next(t for t in result.tickets if t.role == "PO")
+        po = next(t for t in result.tickets if t.role == "Product Confirmation")
         assert "vé" in po.request_body.lower(), (
             f"PO ticket body does not mention 'vé': {po.request_body}"
         )
@@ -218,25 +229,39 @@ class TestGenerator:
         """PO ticket must NOT include 'Đặt vé máy bay hè' — it is a supported (clear) task."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
-        po = next(t for t in result.tickets if t.role == "PO")
+        po = next(t for t in result.tickets if t.role == "Product Confirmation")
         assert "Đặt vé máy bay" not in po.request_body, (
             "'Đặt vé máy bay hè' is supported via keyword 'đặt' and must NOT "
             f"appear in PO ticket. Body: {po.request_body}"
         )
 
-    def test_ops_ticket_separates_clear_and_blocked(self):
-        """Ops ticket must list clear items and blocked (chưa-clear) items separately."""
+    def test_ops_rendered_excludes_meta_fields(self):
+        """Ops rendered output must NOT contain Related doc / Timeline / Dependency / section blocks."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
         ops = next(t for t in result.tickets if t.role == "Ops")
-        body = ops.request_body
-        # Part 1 clear section must mention a supported item
-        assert "Phần clear" in body or "clear" in body.lower()
-        # Part 2 blocked section must mention chưa-clear
-        assert "chưa-clear" in body or "Chưa-clear" in body
-        # The two sections must be distinct (clear items should not bleed into blocked)
-        assert "Chụp màn hình" in body  # unsupported → in blocked part
-        assert "Nạp điện thoại" in body or "payment" in body.lower() or "SCHEME" in body  # clear
+        rendered = ops.render()
+        forbidden = [
+            "Related doc:",
+            "Timeline:",
+            "Dependency:",
+            "[Phan clear",
+            "[Phan chưa-clear",
+            "[Phan config UI",
+        ]
+        for phrase in forbidden:
+            assert phrase not in rendered, (
+                f"Ops rendered output must not contain '{phrase}'"
+            )
+
+    def test_ops_rendered_has_context_and_request(self):
+        """Ops rendered output must contain Context and Request."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        ops = next(t for t in result.tickets if t.role == "Ops")
+        rendered = ops.render()
+        assert "Context:" in rendered, "Ops ticket must contain '• Context:'"
+        assert "Request:" in rendered, "Ops ticket must contain '• Request:'"
 
     def test_design_ticket_includes_game_ui_context(self):
         """Design ticket must include Game UI fields from the request."""
@@ -256,16 +281,15 @@ class TestGenerator:
             f"Biz ticket must flag 'mô tả chương trình'. Body: {biz.request_body}"
         )
 
-    def test_output_contains_ops_review_wording(self):
-        """Output must say Ops must review before copy-paste (not PO)."""
+    def test_metadata_contains_ops_review_wording(self):
+        """render_metadata() must say Ops must review before copy-paste (not PO)."""
         from src.draft_confirmation.generator import generate_draft
         result = generate_draft(str(_SAMPLE))
-        output = result.render()
-        # Must contain Ops + review/copy-paste language
-        assert "Ops" in output
-        lower = output.lower()
+        meta = result.render_metadata()
+        assert "Ops" in meta
+        lower = meta.lower()
         assert "review" in lower and ("copy" in lower or "copy-paste" in lower), (
-            "Output must contain Ops review / copy-paste wording"
+            "render_metadata() must contain Ops review / copy-paste wording"
         )
 
     def test_output_does_not_say_po_must_review_before_copy_paste(self):
@@ -281,6 +305,120 @@ class TestGenerator:
         for phrase in forbidden:
             assert phrase not in output, (
                 f"Output must NOT contain '{phrase}'"
+            )
+
+    # ── UC3 output quality tests ──────────────────────────────────────────────
+
+    def test_render_output_has_no_markdown_bold(self):
+        """render() output must contain no ** bold markers."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        output = result.render()
+        assert "**" not in output, "render() output must not contain ** markers"
+
+    def test_render_starts_with_ticket_block(self):
+        """render() must start directly with --- TICKET: BIZ --- (no header)."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        output = result.render()
+        first_line = output.strip().splitlines()[0]
+        assert first_line.startswith("--- TICKET:"), (
+            f"render() must start with ticket block, got: {first_line!r}"
+        )
+
+    def test_render_has_no_meta_header(self):
+        """render() must not contain any campaign header or footer boilerplate."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        output = result.render()
+        forbidden_phrases = [
+            "=== DRAFT CONFIRMATION TICKETS:",
+            "Generated:",
+            "Milestones:",
+            "--- END OF DRAFT ---",
+            "copy-paste sang Jira",
+        ]
+        for phrase in forbidden_phrases:
+            assert phrase not in output, (
+                f"render() must not contain '{phrase}'"
+            )
+
+    def test_biz_ticket_itemizes_missing_fields(self):
+        """Biz request_body must use itemized list format, not a single sentence."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        biz = next(t for t in result.tickets if t.role == "Biz")
+        # Should start with instruction line then have bullet lines starting with '  -'
+        assert "  - " in biz.request_body, (
+            f"Biz request_body must have itemized lines. Body:\n{biz.request_body}"
+        )
+
+    def test_pc_ticket_itemizes_unclear_points(self):
+        """Product Confirmation request_body must list each unclear item numbered."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        pc = next(t for t in result.tickets if t.role == "Product Confirmation")
+        # Should have numbered items like "1." and "2."
+        assert "1." in pc.request_body, "PC ticket must have numbered items"
+        assert "2." in pc.request_body, "PC ticket must have at least 2 items"
+        # Each item should have reason and PO question sub-lines
+        assert "Ly do can confirm" in pc.request_body or "ly do" in pc.request_body.lower()
+
+    def test_pc_ticket_each_item_has_po_question(self):
+        """PC ticket must include the specific PO question for each unclear item."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        pc = next(t for t in result.tickets if t.role == "Product Confirmation")
+        assert "Can PO confirm" in pc.request_body, (
+            "PC ticket must include 'Can PO confirm' for each item"
+        )
+
+    def test_related_doc_references_input_file(self):
+        """Non-Ops tickets must reference the input request file in related_doc."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        for ticket in result.tickets:
+            if ticket.brief:
+                continue  # Ops is brief — no related_doc rendered
+            assert "campaign_request_sample_01" in ticket.related_doc, (
+                f"{ticket.role} ticket related_doc must reference input file. "
+                f"Got: {ticket.related_doc!r}"
+            )
+
+    def test_sla_all_working_days(self):
+        """All tickets must use working-day SLA wording, not calendar wording."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        for ticket in result.tickets:
+            assert "calendar" not in ticket.sla.lower(), (
+                f"{ticket.role} ticket SLA must not say 'calendar': {ticket.sla!r}"
+            )
+            assert "working" in ticket.sla.lower() or "day" in ticket.sla.lower(), (
+                f"{ticket.role} ticket SLA must use working-day wording: {ticket.sla!r}"
+            )
+
+    def test_design_sla_is_5_working_days(self):
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        design = next(t for t in result.tickets if t.role == "Design")
+        assert "5" in design.sla, f"Design SLA must be 5 working days, got: {design.sla!r}"
+
+    def test_ops_sla_is_10_working_days(self):
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        ops = next(t for t in result.tickets if t.role == "Ops")
+        assert "10" in ops.sla, f"Ops SLA must be 10 working days, got: {ops.sla!r}"
+
+    def test_ops_ticket_has_no_jira_instructions(self):
+        """Ops ticket must not contain instructions about creating Jira tickets."""
+        from src.draft_confirmation.generator import generate_draft
+        result = generate_draft(str(_SAMPLE))
+        ops = next(t for t in result.tickets if t.role == "Ops")
+        body_lower = ops.request_body.lower()
+        forbidden = ["tao jira", "tao ticket", "tao subtask", "ghi jira"]
+        for phrase in forbidden:
+            assert phrase not in body_lower, (
+                f"Ops ticket must not contain Jira creation instructions: {phrase!r}"
             )
 
 
@@ -300,7 +438,7 @@ class TestGeneratorEdgeCases:
         assert out_file.exists()
         content = out_file.read_text(encoding="utf-8")
         assert "TICKET: OPS" in content
-        assert "TICKET: PO" in content
+        assert "TICKET: PRODUCT CONFIRMATION" in content
 
     def test_missing_go_live_date_returns_error(self, tmp_path):
         """Request without T must return an error, not raise an exception."""

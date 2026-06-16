@@ -1,18 +1,18 @@
 === TIMELINE: [DGS_260520_585] OTA - Lucky Wheel Vé hè 0đ ===
-D0: 15/06/2026 | T (go-live): 10/07/2026
+D0: 16/06/2026 | T (go-live): 10/07/2026
 Milestones: T-2 = 08/07/2026 (gửi link test) | T-1 = 09/07/2026 (update) | T = 10/07/2026 (GO LIVE)
 
-| Actor / PIC | D0 15/06 | 16/06 | 17/06 | 18/06 | 19/06 | 20/06 | 21/06 | 22/06 | 23/06 | 24/06 | 25/06 | 26/06 | 27/06 | 28/06 | 29/06 | 30/06 | 01/07 | 02/07 | 03/07 | 04/07 | 05/07 | 06/07 | 07/07 | T-2 08/07 | T-1 09/07 | T 10/07 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Biz | ▓ input fields | ✓ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| Design | ▓ thiết kế UI | → | → | → | → | → | → | ✓ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| Product Confirmation | ▓ confirm items | ✓ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| Ops | ▓ clear: config items<br>· chờ PC (due 16/06/2026)<br>· chờ Design (due 22/06/2026) | → clear<br>▓ chưa-clear: start<br>· chờ Design (due 22/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 22/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 22/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 22/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 22/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 22/06/2026) | → clear<br>→ chưa-clear<br>▓ UI: start config | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | ✓ clear<br>✓ chưa-clear<br>✓ UI |  |  |  |  |  |  |  |  |  |  |  |
-| — Milestones — |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | gửi link test | update feedback | GO LIVE |
+| Actor / PIC | D0 16/06 | 17/06 | 18/06 | 19/06 | 20/06 | 21/06 | 22/06 | 23/06 | 24/06 | 25/06 | 26/06 | 27/06 | 28/06 | 29/06 | 30/06 | 01/07 | 02/07 | 03/07 | 04/07 | 05/07 | 06/07 | 07/07 | T-2 08/07 | T-1 09/07 | T 10/07 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Biz | ▓ input fields | ✓ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Design | ▓ thiết kế UI | → | → | → | → | → | → | ✓ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Product Confirmation | ▓ confirm items | ✓ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Ops | ▓ clear: config items<br>· chờ PC (due 17/06/2026)<br>· chờ Design (due 23/06/2026) | → clear<br>▓ chưa-clear: start<br>· chờ Design (due 23/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 23/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 23/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 23/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 23/06/2026) | → clear<br>→ chưa-clear<br>· chờ Design (due 23/06/2026) | → clear<br>→ chưa-clear<br>▓ UI: start config | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | → clear<br>→ chưa-clear<br>→ UI | ✓ clear<br>✓ chưa-clear<br>✓ UI |  |  |  |  |  |  |  |  |  |  |
+| — Milestones — |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | gửi link test | update feedback | GO LIVE |
 
 📌 Dependencies:
-• Ops–chưa-clear: starts after Product Confirmation ticket due (16/06/2026)
-• Ops–UI: starts after Design ticket due (22/06/2026)
+• Ops–chưa-clear: starts after Product Confirmation ticket due (17/06/2026)
+• Ops–UI: starts after Design ticket due (23/06/2026)
 • Milestones: T-2 = 08/07/2026 gửi link test | T-1 = 09/07/2026 update | T = 10/07/2026 GO LIVE
 
 ⚠️ Ops: review timeline below. Nếu cần chỉnh sửa, chạy lại UC3 trước khi dùng.
